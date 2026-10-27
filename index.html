@@ -1,0 +1,269 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gran Sorteo de la Rifa</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 25px 15px;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            color: white;
+            text-align: center;
+            background: linear-gradient(135deg, #090909, #252525, #570000);
+        }
+
+        h1 {
+            color: #ffd700;
+            font-size: clamp(28px, 5vw, 42px);
+        }
+
+        .subtitulo {
+            color: #ddd;
+            font-size: 18px;
+        }
+
+        .contenedor {
+            max-width: 1000px;
+            margin: 25px auto;
+            padding: 25px;
+            background: #151515;
+            border: 2px solid #d4af37;
+            border-radius: 20px;
+            box-shadow: 0 0 25px #000;
+        }
+
+        .listas {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 15px;
+        }
+
+        .lista {
+            padding: 12px;
+            border: 1px solid #555;
+            border-radius: 12px;
+            background: #222;
+        }
+
+        .lista h2 {
+            color: #ffd700;
+            font-size: 18px;
+        }
+
+        .numeros {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+        }
+
+        .numero {
+            padding: 9px 2px;
+            background: #393939;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .seleccionado {
+            background: #d4af37 !important;
+            color: #111;
+            font-weight: bold;
+            transform: scale(1.05);
+        }
+
+        .ganador {
+            background: #16803c !important;
+            color: white !important;
+            outline: 2px solid #70ff9b;
+            animation: brillar 0.8s infinite alternate;
+        }
+
+        @keyframes brillar {
+            from { box-shadow: 0 0 5px #70ff9b; }
+            to { box-shadow: 0 0 25px #70ff9b; }
+        }
+
+        .resultado {
+            margin: 25px auto;
+            padding: 25px 10px;
+            border: 2px solid #d4af37;
+            border-radius: 15px;
+            background: #101010;
+        }
+
+        #numeroGrande {
+            margin: 15px auto;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            background: #d4af37;
+            color: #111;
+            font-size: 55px;
+            font-weight: bold;
+        }
+
+        #mensaje {
+            color: #ffd700;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        button {
+            margin: 10px;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 30px;
+            background: #d4af37;
+            color: #111;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        @media (max-width: 650px) {
+            .listas {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .contenedor {
+                padding: 12px;
+            }
+        }
+
+        @media (max-width: 350px) {
+            .listas {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🏆 GRAN SORTEO DE LA RIFA 🏆</h1>
+    <p class="subtitulo">8 listas · 20 números por lista · 160 números</p>
+
+    <div class="contenedor">
+        <div class="listas" id="listas"></div>
+
+        <div class="resultado">
+            <h2>🎉 NÚMERO GANADOR 🎉</h2>
+            <div id="numeroGrande">?</div>
+            <p id="mensaje">Presiona el botón para iniciar el sorteo</p>
+        </div>
+
+        <button id="boton" onclick="iniciarSorteo()">
+            🎲 INICIAR SORTEO
+        </button>
+    </div>
+
+    <script>
+        const TOTAL_LISTAS = 8;
+        const NUMEROS_POR_LISTA = 20;
+
+        // Resultado configurado para esta demostración.
+        const LISTA_GANADORA = 3;
+        const NUMERO_GANADOR = 5;
+
+        const listas = document.getElementById("listas");
+        const numeroGrande = document.getElementById("numeroGrande");
+        const mensaje = document.getElementById("mensaje");
+        const boton = document.getElementById("boton");
+
+        // Crear las 8 listas con sus 20 números.
+        for (let l = 1; l <= TOTAL_LISTAS; l++) {
+            const tarjeta = document.createElement("div");
+            tarjeta.className = "lista";
+            tarjeta.innerHTML = `<h2>Lista ${l}</h2>`;
+
+            const contenedorNumeros = document.createElement("div");
+            contenedorNumeros.className = "numeros";
+
+            for (let n = 1; n <= NUMEROS_POR_LISTA; n++) {
+                const numero = document.createElement("div");
+                numero.className = "numero";
+                numero.id = `lista-${l}-numero-${n}`;
+                numero.textContent = n;
+                contenedorNumeros.appendChild(numero);
+            }
+
+            tarjeta.appendChild(contenedorNumeros);
+            listas.appendChild(tarjeta);
+        }
+
+        function iniciarSorteo() {
+            boton.disabled = true;
+            mensaje.textContent = "🎲 Sorteando entre las 8 listas...";
+            numeroGrande.textContent = "?";
+
+            document.querySelectorAll(".numero").forEach(elemento => {
+                elemento.classList.remove("seleccionado", "ganador");
+            });
+
+            let pasos = 0;
+            const totalPasos = 45;
+
+            const animacion = setInterval(() => {
+                document.querySelectorAll(".numero").forEach(elemento => {
+                    elemento.classList.remove("seleccionado");
+                });
+
+                // Mostrar números cambiantes durante la animación.
+                const listaActual = Math.floor(Math.random() * 8) + 1;
+                const numeroActual = Math.floor(Math.random() * 20) + 1;
+
+                const elementoActual = document.getElementById(
+                    `lista-${listaActual}-numero-${numeroActual}`
+                );
+
+                elementoActual.classList.add("seleccionado");
+                numeroGrande.textContent = numeroActual;
+                pasos++;
+
+                if (pasos >= totalPasos) {
+                    clearInterval(animacion);
+
+                    document.querySelectorAll(".numero").forEach(elemento => {
+                        elemento.classList.remove("seleccionado");
+                    });
+
+                    const ganador = document.getElementById(
+                        `lista-${LISTA_GANADORA}-numero-${NUMERO_GANADOR}`
+                    );
+
+                    ganador.classList.add("ganador");
+                    numeroGrande.textContent = NUMERO_GANADOR;
+
+                    mensaje.textContent =
+                        `🏆 ¡GANADOR! LISTA ${LISTA_GANADORA}, NÚMERO ${NUMERO_GANADOR} 🏆`;
+
+                    ganador.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center"
+                    });
+
+                    boton.textContent = "VOLVER A MOSTRAR RESULTADO";
+                    boton.disabled = false;
+                }
+            }, 100);
+        }
+    </script>
+
+</body>
+</html>
